@@ -159,11 +159,9 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
      */
     static function &singleton($providerParams = array(), $force = FALSE)
     {
-	/* THIS IS A HACK!!! 
-       //$providerID = CRM_Utils_Array::value('provider', $providerParams);
-	*/
-	$providerID = 1;
-	///////////////
+	$providerID = CRM_Utils_Array::value('provider_id', $providerParams); //returns null since providerID is not defined in query string
+       $providerID = CRM_SMS_BAO_Provider::getProviderInfo($providerID,'id');
+        //$providerName = CRM_SMS_BAO_Provider::getProviderInfo($providerID);
 
         $skipAuth = TRUE; //$providerID ? FALSE : TRUE; hack to skip authorization
         $cacheKey = (int)$providerID;
