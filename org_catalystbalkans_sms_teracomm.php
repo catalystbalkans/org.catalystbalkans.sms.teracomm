@@ -563,8 +563,20 @@ die();
             //send MT message for charging (type=PREMIUM_MT)
 
             $header['type'] = "PREMIUM_MT";
-	    $plannedamount = $result_campaign["values"][0]["goal_revenue"];
-            $message= "Hvala na donaciji. Do sada je za ovu kampanju prikupljeno 8800 " . "od " . $plannedamount . " dinara." ;
+	        $plannedamount = $result_campaign["values"][0]["goal_revenue"];
+
+	        //get sum of existing donations
+
+            $donacije = civicrm_api3('Contribution', 'get', array(
+                'sequential' => 1,
+                'return' => array("total_amount"),
+                'campaign_id' => $text,
+            ));
+
+            $donacije_total = array_sum(array_column_recursive($donacije,"total_amount"));
+
+	        //$actualamount = array_sum($donations)
+            $message= "Hvala na donaciji. Do sada je za ovu kampanju prikupljeno " . $donacije_total . " od " . $plannedamount . " dinara." ;
 
             $this->send_mt($msisdn,$header,$message);
 die();
@@ -573,14 +585,14 @@ die();
         return;
     }
 
-    /*function array_column_recursive(array $haystack, $needle) {
+    function array_column_recursive(array $haystack, $needle) {
         $found = [];
         array_walk_recursive($haystack, function($value, $key) use (&$found, $needle) {
             if ($key == $needle)
                 $found[] = $value;
         });
         return $found;
-    }*/
+    }
 
     function process_mt_response(){
 
