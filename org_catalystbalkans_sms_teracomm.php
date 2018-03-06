@@ -333,11 +333,11 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
     {
         if ($this->_apiType == 'http') {
             $postDataArray = array();
-            $url = "http://sr.tera-com.com/tsmsgw/s.php";//$this->formURLPostData("/sendsms/sms.php", $postDataArray);
+            //$url = "http://sr.tera-com.com/tsmsgw/s.php";
+            $url = $this->formURLPostData("/tsmsgw/s.php", $postDataArray);
 
             $this->_providerInfo['username'];
             $this->_providerInfo['password'];
-//      $postDataArray['api_id'] = $this->_providerInfo['api_params']['api_id'];
 
             if (array_key_exists('from', $this->_providerInfo['api_params'])) {
                 $postDataArray['nmb_from'] = $this->_providerInfo['api_params']['from'];
@@ -345,20 +345,21 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
             if (array_key_exists('concat', $this->_providerInfo['api_params'])) {
                 $postDataArray['concat'] = $this->_providerInfo['api_params']['concat'];
             }
+
             //TODO:
-            //$postDataArray['nmb_to'] = $header['To'];
+
             $postDataArray['text'] = utf8_decode(substr($message, 0, 160)); // max of 160 characters, is probably not multi-lingual
             if (array_key_exists('mo', $this->_providerInfo['api_params'])) {
                 $postDataArray['mo'] = $this->_providerInfo['api_params']['mo'];
             }
 
-	   $postDataArray["msg_id"] = $header['msg_id'];
-	   $postDataArray["service_id"] = $header['service_id'];
-	   $postDataArray["type"] = $header['type'];
-	   $postDataArray["shortcode"] = $header['shortcode'];
-	   $postDataArray["msisdn"] = $header['msisdn'];
-	   $postDataArray["mcc"] = $header['mcc'];
-	   $postDataArray["mnc"] = $header['mnc'];
+            $postDataArray["msg_id"] = $header['msg_id'];
+            $postDataArray["service_id"] = $header['service_id'];
+            $postDataArray["type"] = $header['type'];
+            $postDataArray["shortcode"] = $header['shortcode'];
+            $postDataArray["msisdn"] = $header['msisdn'];
+            $postDataArray["mcc"] = $header['mcc'];
+            $postDataArray["mnc"] = $header['mnc'];
 
             $isTest = 0;
             if (array_key_exists('is_test', $this->_providerInfo['api_params']) &&
@@ -457,26 +458,6 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
                     $clickStat = $this->_messageStatus[$status] . " - User cancelled message";
                     break;
 
-                /* case "007":
-                  $statusID = $actStatusIDs['Cancelled'];
-                  $clickStat = $this->_messageStatus[$status] . " - Error delivering message";
-                  break;
-
-                case "008":
-                  $statusID = $actStatusIDs['Completed'];
-                  $clickStat = $this->_messageStatus[$status] . " - Ok, Message Received by Gateway";
-                  break;
-
-                case "009":
-                  $statusID = $actStatusIDs['Cancelled'];
-                  $clickStat = $this->_messageStatus[$status] . " - Routing Error";
-                  break;
-
-                case "010":
-                  $statusID = $actStatusIDs['Cancelled'];
-                  $clickStat = $this->_messageStatus[$status] . " - Message Expired";
-                  break; */
-
                 case "11":
                     $statusID = $actStatusIDs['Completed'];
                     $clickStat = $this->_messageStatus[$status] . " - Message Delivered to Mobile";
@@ -520,7 +501,8 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
         $mnc = $this->retrieve('mnc', 'String');
         $text = $this->retrieve('text', 'String');
         $time = $this->retrieve('time', 'String');
-echo "OK " . $msg_id;
+
+        echo "OK " . $msg_id;
 
         //check message body for service info
 
@@ -534,8 +516,8 @@ echo "OK " . $msg_id;
 
        // $plannedamount = $result_campaign["values"][0]["goal_revenue"];
 
-	$header['msg_id'] = mt_rand(1,500000);
-	$header['service_id'] = $service_id;
+	    $header['msg_id'] = mt_rand(1,500000);
+	    $header['service_id'] = $service_id;
         $header['shortcode'] = $shortcode;
         $header['msisdn'] = $msisdn;
         $header['mcc'] = $mcc;
@@ -555,9 +537,8 @@ echo "OK " . $msg_id;
             $header['type']="FREE_MT";
             $message= 'Donacije nije uspela jer kampanja ne postoji ili nije aktivna. Molimo pokusajte ponovo.';
 
-	//send MT message without charge (type = FREE_MT)
+	        //send MT message without charge (type = FREE_MT)
             $this->send_mt($msisdn,$header,$message);
-die();
         }
         else{
             //send MT message for charging (type=PREMIUM_MT)
@@ -579,7 +560,6 @@ die();
             $message= "Hvala na donaciji. Do sada je za ovu kampanju prikupljeno " . $donacije_total . " od " . $plannedamount . " dinara." ;
 
             $this->send_mt($msisdn,$header,$message);
-die();
         }
 
         return;
