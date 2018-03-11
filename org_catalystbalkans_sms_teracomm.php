@@ -551,13 +551,12 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
             $donacije = civicrm_api3('Contribution', 'get', array(
                 'sequential' => 1,
                 'return' => array("total_amount"),
-                'campaign_id' => $text,
+                'campaign_id' => $result_campaign["id"],
             ));
 
-            $donacije_total = array_sum(array_column_recursive($donacije,"total_amount"));
+            $donacije_total = array_sum($this->array_column_recursive($donacije,"total_amount"));
 
-	        //$actualamount = array_sum($donations)
-            $message= "Hvala na donaciji. Do sada je za ovu kampanju prikupljeno " . $donacije_total . " od " . $plannedamount . " dinara." ;
+            $message= "Hvala na donaciji. Do sada je za ovu kampanju prikupljeno " . number_format($donacije_total, 2, '.', '') . " od " . $plannedamount . " dinara." ;
 
             $this->send_mt($msisdn,$header,$message);
         }
