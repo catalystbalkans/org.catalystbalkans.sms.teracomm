@@ -516,7 +516,7 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
 
        // $plannedamount = $result_campaign["values"][0]["goal_revenue"];
 
-	    $header['msg_id'] = mt_rand(1,500000);
+	    $header['msg_id'] = $msg_id;//mt_rand(1,500000);
 	    $header['service_id'] = $service_id;
         $header['shortcode'] = $shortcode;
         $header['msisdn'] = $msisdn;
@@ -561,7 +561,7 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
             $this->send_mt($msisdn,$header,$message);
         }
 
-        return;
+        exit();
     }
 
     function array_column_recursive(array $haystack, $needle) {
@@ -592,7 +592,10 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
         //$fromPhone = $this->retrieve('from', 'String');
         $fromPhone = $this->formatPhone($this->stripPhone($msisdn), $like, "like");
 
-        if ($status == 'CHARGED') {
+        switch ($status)
+        {
+
+        case "CHARGED":
 
             // create contribution
 
@@ -617,8 +620,11 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
 		    'first_name' => "",
                     'last_name' => "",
                     'email' => $msisdn . "@mobile.sms",
-                    'display_name' => @msisdn,
-                    'phone' => $msisdn,
+                    'display_name' => $msisdn . "@mobile.sms",
+                    'api.Phone.create' => array(
+                        'phone' => $msisdn,
+                        'phone_type_id' => "Mobile",
+			),
                 ));
 $created_contact_id = $result_create_contact["id"];
 
@@ -633,11 +639,27 @@ $created_contact_id = $result_create_contact["id"];
 
                 //send message ACK to sender
 		echo "OK " . $msg_id;
+		break;
 
-            }
+	case "CHARGE_FAIL":
+        CRM_Core_Error::debug_log_message("Description of the error: " . $text . ", error code: " . $code . " parent msg id: " .$parent_msg_id . " CHARGE FAILED - for phone: {$msisdn}");
+        echo "OK " . $msg_id;
+        break;
+
+        case "STOPPED":
+        CRM_Core_Error::debug_log_message("STOPPED  - for phone: {$msisdn}");
+        echo "OK " . $msg_id;
+        break;
+
+        default:
+        //error
+        echo "FAIL " . $msg_id;
+        CRM_Core_Error::debug_log_message("General message failure from provider  - for phone: {msisdn}");
+
+        break;
+
         }
-
-        return;
+        exit();
     }
 
     /**
