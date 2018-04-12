@@ -646,9 +646,18 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
         case "CHARGED":
 			//update contribution status to 'Completed'
             
+			$result = civicrm_api3('Contribution',
+				'get', array(
+				'sequential' => 1,
+				'trxn_id' => $msg_id,
+				'api.Contribution.create' => array(
+					'contribution_status_id' => "Completed"
+					),
+			));
+			
                 //send message ACK to sender
-		echo "OK " . $msg_id;
-		break;
+				echo "OK " . $msg_id;
+				break;
 
 	case "CHARGE_FAIL":
 		//update contribution status to 'Failed'
