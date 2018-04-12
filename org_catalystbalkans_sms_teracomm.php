@@ -626,7 +626,8 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
                         'phone_type_id' => "Mobile",
 			),
                 ));
-$created_contact_id = $result_create_contact["id"];
+				
+				$created_contact_id = $result_create_contact["id"];
 
                 //create contribution for newly created contact
                 $result_create_contribution = civicrm_api3('Contribution', 'create', array(
@@ -636,7 +637,7 @@ $created_contact_id = $result_create_contact["id"];
                         'contact_id' => $created_contact_id,
                         'campaign_id' => $text,
                     ));
-
+			}
                 //send message ACK to sender
 		echo "OK " . $msg_id;
 		break;
