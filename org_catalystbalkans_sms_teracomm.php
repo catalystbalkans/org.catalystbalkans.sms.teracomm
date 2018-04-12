@@ -541,17 +541,65 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
             $this->send_mt($msisdn,$header,$message);
         }
         else{
-            //send MT message for charging (type=PREMIUM_MT)
+            // create contribution
+
+            $result_create_contribution = civicrm_api3('Contact', 'get', array(
+                'sequential' => 1,
+                'phone' => $msisdn,
+                'api.Contribution.create' => array(
+                    'sequential' => 1,
+                    'financial_type_id' => "SMS",
+                    'total_amount' => 100,
+					'contribution_status_id' => "Pending", //maybe replace it with integer?
+					'trxn_id' => $msg_id, 
+                    'contact_id' => "user_contact_id",
+                    'campaign_id' => $text,
+                ),
+            ));
+
+            if ($result_create_contribution["count"] == 0) {
+
+                //contact does not exist
+                $result_create_contact = civicrm_api3('Contact', 'create', array(
+                    'sequential' => 1,
+                    'contact_type' => "Individual",
+					'first_name' => "",
+                    'last_name' => "",
+                    'email' => $msisdn . "@mobile.sms",
+                    'display_name' => $msisdn . "@mobile.sms",
+                    'api.Phone.create' => array(
+                        'phone' => $msisdn,
+                        'phone_type_id' => "Mobile",
+			),
+                ));
+				
+				$created_contact_id = $result_create_contact["id"];
+
+                //create contribution for newly created contact
+                $result_create_contribution = civicrm_api3('Contribution', 'create', array(
+                        'sequential' => 1,
+                        'financial_type_id' => "SMS",
+                        'total_amount' => 100,
+						'contribution_status_id' => "Pending", //maybe replace it with integer?
+						'trxn_id' => $msg_id, 
+                        'contact_id' => $created_contact_id,
+                        'campaign_id' => $text,
+                    ));
+			}
+			
+			
+			//send MT message for charging (type=PREMIUM_MT)
 
             $header['type'] = "PREMIUM_MT";
 	        $plannedamount = $result_campaign["values"][0]["goal_revenue"];
 
-	        //get sum of existing donations
+	        //get sum of existing (completed) donations
 
             $donacije = civicrm_api3('Contribution', 'get', array(
                 'sequential' => 1,
                 'return' => array("total_amount"),
                 'campaign_id' => $result_campaign["id"],
+				'contribution_status_id' => "Completed",
             ));
 
             $donacije_total = array_sum($this->array_column_recursive($donacije,"total_amount"));
@@ -596,53 +644,16 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
         {
 
         case "CHARGED":
-
-            // create contribution
-
-            $result_create_contribution = civicrm_api3('Contact', 'get', array(
-                'sequential' => 1,
-                'phone' => $msisdn,
-                'api.Contribution.create' => array(
-                    'sequential' => 1,
-                    'financial_type_id' => "SMS",
-                    'total_amount' => 100,
-                    'contact_id' => "user_contact_id",
-                    'campaign_id' => $text,
-                ),
-            ));
-
-            if ($result_create_contribution["count"] == 0) {
-
-                //contact does not exist
-                $result_create_contact = civicrm_api3('Contact', 'create', array(
-                    'sequential' => 1,
-                    'contact_type' => "Individual",
-		    'first_name' => "",
-                    'last_name' => "",
-                    'email' => $msisdn . "@mobile.sms",
-                    'display_name' => $msisdn . "@mobile.sms",
-                    'api.Phone.create' => array(
-                        'phone' => $msisdn,
-                        'phone_type_id' => "Mobile",
-			),
-                ));
-				
-				$created_contact_id = $result_create_contact["id"];
-
-                //create contribution for newly created contact
-                $result_create_contribution = civicrm_api3('Contribution', 'create', array(
-                        'sequential' => 1,
-                        'financial_type_id' => "SMS",
-                        'total_amount' => 100,
-                        'contact_id' => $created_contact_id,
-                        'campaign_id' => $text,
-                    ));
-			}
+			//update contribution status to 'Completed'
+            
                 //send message ACK to sender
 		echo "OK " . $msg_id;
 		break;
 
 	case "CHARGE_FAIL":
+		//update contribution status to 'Failed'
+		
+		
         CRM_Core_Error::debug_log_message("Description of the error: " . $text . ", error code: " . $code . " parent msg id: " .$parent_msg_id . " CHARGE FAILED - for phone: {$msisdn}");
         echo "OK " . $msg_id;
         break;
