@@ -28,9 +28,9 @@ function teracomm_civicrm_install() {
           'label' => 'Teracomm',
           'value' => 'org.catalystbalkans.sms.teracomm',
           'name'  => 'teracomm',
-          'is_default' => 1,
+          'is_default' => 0,
           'is_active'  => 1,
-          'version'    => 1,);
+          'version'    => 3,);
   require_once 'api/api.php';
   civicrm_api( 'option_value','create', $params );
   
