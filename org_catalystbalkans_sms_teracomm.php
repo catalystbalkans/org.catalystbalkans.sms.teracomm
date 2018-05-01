@@ -543,17 +543,18 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
         else{
             // create contribution
 
-            $result_create_contribution = civicrm_api3('Contact', 'get', array(
+            $result_create_contribution = civicrm_api3('Phone', 'get', array(
                 'sequential' => 1,
                 'phone' => $msisdn,
-                'api.Contribution.create' => array(
-                    'sequential' => 1,
-                    'financial_type_id' => "SMS",
-                    'total_amount' => 100,
-					'contribution_status_id' => "Pending", //maybe replace it with integer?
-					'trxn_id' => $msg_id, 
-                    'contact_id' => "user_contact_id",
-                    'campaign_id' => $text,
+                'api.Contact.get' => array(
+                    'api.Contribution.create' => array(
+                        'sequential' => 1,
+                        'financial_type_id' => "SMS",
+                        'total_amount' => 100,
+                        'contribution_status_id' => "Pending",
+                        'trxn_id' => $msg_id,
+                        'campaign_id' => $result_campaign["id"]
+                    )
                 ),
             ));
 
@@ -598,6 +599,7 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
             $donacije = civicrm_api3('Contribution', 'get', array(
                 'sequential' => 1,
                 'return' => array("total_amount"),
+                'options' => array('limit' => ""),
                 'campaign_id' => $result_campaign["id"],
 				'contribution_status_id' => "Completed",
             ));
@@ -632,6 +634,10 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
         $mnc = $this->retrieve('mnc', 'String');
         $status = $this->retrieve('status','String');
         $text = $this->retrieve('text', 'String');
+
+        if ($status == "CHARGE_FAIL")
+            $text = $this->retrieve('text', 'String');
+
         $time = $this->retrieve('time', 'String');
 
         //get 'from' number
@@ -649,7 +655,7 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
 			$result = civicrm_api3('Contribution',
 				'get', array(
 				'sequential' => 1,
-				'trxn_id' => $msg_id,
+				'trxn_id' => $parent_msg_id,
 				'api.Contribution.create' => array(
 					'contribution_status_id' => "Completed"
 					),
