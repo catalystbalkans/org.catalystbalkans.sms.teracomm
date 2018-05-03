@@ -68,7 +68,7 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
      */
     protected $_fp;
 
-    public $_apiURL = "https://bulkrssrv.allterco.net";
+    public $_apiURL = "http://sr.tera-com.com/tsmsgw/s.php";
 
     protected $_messageType = array(
         'SMS_TEXT',
@@ -253,80 +253,8 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
      */
     function send($recipients, $header, $message, $jobID = NULL, $userID = NULL)
     {
-        if ($this->_apiType == 'http') {
-            $postDataArray = array();
-            $url = $this->formURLPostData("/sendsms/sms.php", $postDataArray);
-
-            $postDataArray['user'] = $this->_providerInfo['username'];
-            $postDataArray['pass'] = $this->_providerInfo['password'];
-//      $postDataArray['api_id'] = $this->_providerInfo['api_params']['api_id'];
-
-            if (array_key_exists('from', $this->_providerInfo['api_params'])) {
-                $postDataArray['nmb_from'] = $this->_providerInfo['api_params']['from'];
-            }
-            if (array_key_exists('concat', $this->_providerInfo['api_params'])) {
-                $postDataArray['concat'] = $this->_providerInfo['api_params']['concat'];
-            }
-            //TODO:
-            $postDataArray['nmb_to'] = $header['To'];
-            $postDataArray['text'] = utf8_decode(substr($message, 0, 160)); // max of 160 characters, is probably not multi-lingual
-            if (array_key_exists('mo', $this->_providerInfo['api_params'])) {
-                $postDataArray['mo'] = $this->_providerInfo['api_params']['mo'];
-            }
-            // sendmsg with callback request:
-            //$postDataArray['callback'] = 3;
-            $postDataArray['dlrr'] = 1;
-
-            $isTest = 0;
-            if (array_key_exists('is_test', $this->_providerInfo['api_params']) &&
-                $this->_providerInfo['api_params']['is_test'] == 1
-            ) {
-                $isTest = 1;
-            }
-
-            /**
-             * Check if we are using a queue when sending as each account
-             * with Clickatell is assigned three queues namely 1, 2 and 3.
-             */
-            if (isset($header['queue']) && is_numeric($header['queue'])) {
-                if (in_array($header['queue'], range(1, 3))) {
-                    $postDataArray['queue'] = $header['queue'];
-                }
-            }
-
-            /**
-             * Must we escalate message delivery if message is stuck in
-             * the queue at Clickatell?
-             */
-            if (isset($header['escalate']) && !empty($header['escalate'])) {
-                if (is_numeric($header['escalate'])) {
-                    if (in_array($header['escalate'], range(1, 2))) {
-                        $postDataArray['escalate'] = $header['escalate'];
-                    }
-                }
-            }
-
-            if ($isTest == 1) {
-                $response = array('data' => 'ID:' . rand());
-            } else {
-                $postData = $this->urlEncode($postDataArray);
-                $response = $this->curl($url, $postData);
-            }
-            if (PEAR::isError($response)) {
-                return $response;
-            }
-            //$send = explode(":", $response['data']);
-            $send = preg_split('/\s+/', $response['data']);
-
-            if ($send[0] == "OK") {
-                $this->createActivity(trim($send[1]), $message, $header, $jobID, $userID);
-                return $send[1];
-            } else {
-                // TODO: Should add a failed activity instead.
-                CRM_Core_Error::debug_log_message(json_encode($response) . " - for phone: {$postDataArray['nmb_to']}"); //$response['data']
-                return PEAR::raiseError($response['data'], null, PEAR_ERROR_RETURN);
-            }
-        }
+        CRM_Core_Error::debug_log_message("Unable to send SMS messages through this extension");
+        return PEAR::raiseError("Unable to send SMS messages through this extension", null, PEAR_ERROR_RETURN);
     }
 
     function send_mt($recipients, $header, $message, $jobID = NULL, $userID = NULL)
@@ -334,7 +262,7 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
         if ($this->_apiType == 'http') {
             $postDataArray = array();
             //$url = "http://sr.tera-com.com/tsmsgw/s.php";
-            $url = $this->formURLPostData("/tsmsgw/s.php", $postDataArray);
+            $url = $this->formURLPostData("", $postDataArray);
 
             $this->_providerInfo['username'];
             $this->_providerInfo['password'];
@@ -428,10 +356,6 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
             $status = $this->retrieve('dlr_code', 'String');
 
             switch ($status) {
-                /* case "001":
-                  $statusID = $actStatusIDs['Cancelled'];
-                  $clickStat = $this->_messageStatus[$status] . " - Message Unknown";
-                  break; */
 
                 case "0":
                     $statusID = $actStatusIDs['Scheduled'];
@@ -511,10 +435,6 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
             //'campaign_id' => $text, //disabled for testing
 	   'external_identifier' => $text,
 	));
-
-        //$result_campaign_json = json_decode($result_campaign,true);
-
-       // $plannedamount = $result_campaign["values"][0]["goal_revenue"];
 
 	    $header['msg_id'] = $msg_id;//mt_rand(1,500000);
 	    $header['service_id'] = $service_id;
@@ -669,7 +589,7 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
 		//update contribution status to 'Failed'
 		
 		
-        CRM_Core_Error::debug_log_message("Description of the error: " . $text . ", error code: " . $code . " parent msg id: " .$parent_msg_id . " CHARGE FAILED - for phone: {$msisdn}");
+        CRM_Core_Error::debug_log_message("Description of the error: " . $text . ", error code: " . $status . " parent msg id: " .$parent_msg_id . " CHARGE FAILED - for phone: {$msisdn}");
         echo "OK " . $msg_id;
         break;
 
