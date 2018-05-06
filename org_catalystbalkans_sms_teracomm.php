@@ -159,9 +159,17 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
      */
     static function &singleton($providerParams = array(), $force = FALSE)
     {
-	$providerID = CRM_Utils_Array::value('provider_id', $providerParams); //returns null since providerID is not defined in query string
-       $providerID = CRM_SMS_BAO_Provider::getProviderInfo($providerID,'id');
+	    //$providerID = CRM_Utils_Array::value('provider_id', $providerParams); //returns null since providerID is not defined in query string
+        //$providerID = CRM_SMS_BAO_Provider::getProviderInfo($providerID,'id');
         //$providerName = CRM_SMS_BAO_Provider::getProviderInfo($providerID);
+
+        if(isset($providerParams['provider'])){
+            $providers = CRM_SMS_BAO_Provider::getProviders(NULL, array('name' => $providerParams['provider']));
+            $providerID = current($providers)['id'];
+        }
+        else{
+            $providerID = CRM_Utils_Array::value('provider_id', $providerParams);
+        }
 
         $skipAuth = TRUE; //$providerID ? FALSE : TRUE; hack to skip authorization
         $cacheKey = (int)$providerID;
@@ -264,8 +272,8 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
             //$url = "http://sr.tera-com.com/tsmsgw/s.php";
             $url = $this->formURLPostData("", $postDataArray);
 
-            $this->_providerInfo['username'];
-            $this->_providerInfo['password'];
+            $postDataArray['username'] = $this->_providerInfo['username'];
+            $postDataArray['password'] = $this->_providerInfo['password'];
 
             if (array_key_exists('from', $this->_providerInfo['api_params'])) {
                 $postDataArray['nmb_from'] = $this->_providerInfo['api_params']['from'];
