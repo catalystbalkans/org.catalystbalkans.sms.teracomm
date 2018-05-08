@@ -512,7 +512,7 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
 						'contribution_status_id' => "Pending", //maybe replace it with integer?
 						'trxn_id' => $msg_id, 
                         'contact_id' => $created_contact_id,
-                        'campaign_id' => $text,
+                        'campaign_id' => $result_campaign["id"],
                     ));
 			}
 			
