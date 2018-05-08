@@ -561,7 +561,6 @@ class org_catalystbalkans_sms_teracomm extends CRM_SMS_Provider
         $mcc = $this->retrieve('mcc', 'String');
         $mnc = $this->retrieve('mnc', 'String');
         $status = $this->retrieve('status','String');
-        $text = $this->retrieve('text', 'String');
 
         if ($status == "CHARGE_FAIL")
             $text = $this->retrieve('text', 'String');
